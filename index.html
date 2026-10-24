@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>EL-CİO | Geri Sayım Sayacı</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Google Fonts - Montserrat & Poppins -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@800;900&family=Poppins:wght@400;600;700;800&display=swap" rel="stylesheet">
+    
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Poppins', 'sans-serif'],
+                        brand: ['Montserrat', 'sans-serif'],
+                    }
+                }
+            }
+        }
+    </script>
+
+    <style>
+        /* Tam Ekran Canlı Pembe Arka Plan */
+        body {
+            background: linear-gradient(135deg, #ff007f 0%, #ec4899 50%, #d946ef 100%);
+            color: #ffffff;
+        }
+
+        /* Cam Şeffaflığında Pembe Uyumlu Kartlar */
+        .pink-card {
+            background: rgba(255, 255, 255, 0.15);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.2);
+        }
+
+        /* Başlık Parıltısı */
+        .title-shadow {
+            text-shadow: 0 4px 20px rgba(0, 0, 0, 0.25);
+        }
+    </style>
+</head>
+<body class="min-h-screen flex flex-col justify-between items-center p-4 sm:p-8 font-sans select-none overflow-hidden">
+
+    <!-- Üst Başlık (Header) -->
+    <header class="w-full text-center pt-6 sm:pt-10 z-10">
+        <!-- Marka Başlığı -->
+        <h1 class="font-brand text-6xl sm:text-8xl md:text-9xl font-black tracking-wider uppercase text-white title-shadow mb-2 drop-shadow-md">
+            EL-CİO
+        </h1>
+        
+        <!-- Alt Bilgi Etiketi -->
+        <div class="inline-block bg-white/20 backdrop-blur-md border border-white/40 px-6 py-2 rounded-full text-xs sm:text-base font-bold tracking-widest uppercase text-white shadow-lg">
+            31 EKİM 23:59:59 HEDEFİ
+        </div>
+    </header>
+
+    <!-- Ana Sayaç Alanı -->
+    <main class="w-full max-w-5xl mx-auto my-auto py-6 z-10 flex flex-col items-center justify-center">
+        
+        <!-- Sayaç Kartları Kutu Izgarası -->
+        <div id="countdown-wrapper" class="grid grid-cols-2 md:grid-cols-4 gap-4 sm:gap-6 w-full max-w-4xl">
+            
+            <!-- Gün Kartı -->
+            <div class="pink-card rounded-3xl p-6 sm:p-8 flex flex-col items-center justify-center transform hover:scale-105 transition-transform duration-300">
+                <span id="days" class="text-6xl sm:text-7xl md:text-8xl font-black text-white tracking-tight drop-shadow-md">00</span>
+                <span class="text-xs sm:text-sm font-extrabold text-white/90 uppercase tracking-widest mt-2">GÜN</span>
+            </div>
+
+            <!-- Saat Kartı -->
+            <div class="pink-card rounded-3xl p-6 sm:p-8 flex flex-col items-center justify-center transform hover:scale-105 transition-transform duration-300">
+                <span id="hours" class="text-6xl sm:text-7xl md:text-8xl font-black text-white tracking-tight drop-shadow-md">00</span>
+                <span class="text-xs sm:text-sm font-extrabold text-white/90 uppercase tracking-widest mt-2">SAAT</span>
+            </div>
+
+            <!-- Dakika Kartı -->
+            <div class="pink-card rounded-3xl p-6 sm:p-8 flex flex-col items-center justify-center transform hover:scale-105 transition-transform duration-300">
+                <span id="minutes" class="text-6xl sm:text-7xl md:text-8xl font-black text-white tracking-tight drop-shadow-md">00</span>
+                <span class="text-xs sm:text-sm font-extrabold text-white/90 uppercase tracking-widest mt-2">DAKİKA</span>
+            </div>
+
+            <!-- Saniye Kartı -->
+            <div class="pink-card rounded-3xl p-6 sm:p-8 flex flex-col items-center justify-center transform hover:scale-105 transition-transform duration-300">
+                <span id="seconds" class="text-6xl sm:text-7xl md:text-8xl font-black text-white tracking-tight drop-shadow-md">00</span>
+                <span class="text-xs sm:text-sm font-extrabold text-white/90 uppercase tracking-widest mt-2">SANİYE</span>
+            </div>
+
+        </div>
+
+        <!-- Süre Dolduğunda Görünecek Mesaj -->
+        <div id="completion-message" class="hidden pink-card rounded-3xl p-8 sm:p-12 text-center max-w-2xl mx-auto shadow-2xl">
+            <h2 class="text-4xl sm:text-6xl font-black text-white mb-2 drop-shadow-md">
+                SÜRE DOLDU!
+            </h2>
+            <p class="text-white/90 text-xl font-bold uppercase tracking-wider">
+                EL-CİO Zamanı Geldi!
+            </p>
+        </div>
+
+    </main>
+
+    <!-- Alt Bilgi (Footer) -->
+    <footer class="w-full text-center pb-4 text-xs font-semibold text-white/80 z-10 tracking-widest uppercase">
+        EL-CİO Official Stream Overlay
+    </footer>
+
+    <!-- Sayaç JavaScript Mantığı -->
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Hedef Tarih: 31 Ekim 23:59:59
+            function getTargetDate() {
+                const now = new Date();
+                let year = now.getFullYear();
+                
+                // Ekim ayı indeksi 9'dur (0: Ocak, 9: Ekim)
+                let target = new Date(year, 9, 31, 23, 59, 59);
+
+                // Eğer bu yılın 31 Ekimi geçmişse, bir sonraki yıla ayarla
+                if (now > target) {
+                    target = new Date(year + 1, 9, 31, 23, 59, 59);
+                }
+                return target;
+            }
+
+            const targetDate = getTargetDate();
+
+            // DOM Elemanları
+            const daysEl = document.getElementById('days');
+            const hoursEl = document.getElementById('hours');
+            const minutesEl = document.getElementById('minutes');
+            const secondsEl = document.getElementById('seconds');
+            
+            const countdownWrapper = document.getElementById('countdown-wrapper');
+            const completionMessage = document.getElementById('completion-message');
+
+            function formatTime(val) {
+                return val < 10 ? '0' + val : val;
+            }
+
+            function updateCountdown() {
+                const currentTime = new Date();
+                const diff = targetDate - currentTime;
+
+                if (diff <= 0) {
+                    // Süre dolduğunda
+                    daysEl.innerText = "00";
+                    hoursEl.innerText = "00";
+                    minutesEl.innerText = "00";
+                    secondsEl.innerText = "00";
+
+                    countdownWrapper.classList.add('hidden');
+                    completionMessage.classList.remove('hidden');
+                    return;
+                }
+
+                // Zaman Birimlerini Hesapla
+                const d = Math.floor(diff / (1000 * 60 * 60 * 24));
+                const h = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+                const m = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+                const s = Math.floor((diff % (1000 * 60)) / 1000);
+
+                // Ekrana Yansıt
+                daysEl.innerText = formatTime(d);
+                hoursEl.innerText = formatTime(h);
+                minutesEl.innerText = formatTime(m);
+                secondsEl.innerText = formatTime(s);
+            }
+
+            // Sayacı başlat ve her 1 saniyede güncelle
+            updateCountdown();
+            setInterval(updateCountdown, 1000);
+        });
+    </script>
+</body>
+</html>
